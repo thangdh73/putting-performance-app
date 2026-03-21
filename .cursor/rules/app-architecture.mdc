@@ -1,0 +1,18 @@
+---
+description: Architecture and coding rules for the putting performance app
+alwaysApply: true
+---
+
+- Read `AGENTS.md` and `docs/product-guide.md` before major implementation work.
+- Follow MVP scope only.
+- Frontend stack: React + TypeScript + Vite + Tailwind.
+- Backend stack: FastAPI + SQLite.
+- Keep scoring logic in backend service modules.
+- Do not add authentication, payments, social features, Docker, CI/CD, or cloud sync.
+- Use small, testable functions.
+- Prefer explicit types and clear interfaces.
+- Keep the UI mobile-friendly and simple.
+- Build working vertical slices instead of generating large incomplete systems.
+- Add tests for scoring logic before advanced refinements.
+- When given a large task, first propose a short implementation plan, then code.
+- Summarise created and modified files after each major implementation step.
