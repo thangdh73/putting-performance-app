@@ -62,4 +62,5 @@ def root():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "putting-performance-api"}
+    db_type = "postgresql" if os.environ.get("DATABASE_URL") else "sqlite"
+    return {"status": "ok", "service": "putting-performance-api", "database": db_type}

@@ -20,7 +20,12 @@ else:
     SQLALCHEMY_DATABASE_URL = f"sqlite:///{_BACKEND_DIR / 'putting.db'}"
     _connect_args = {"check_same_thread": False}
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args=_connect_args)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args=_connect_args,
+    pool_pre_ping=True,  # Verify connections before use (helps with Neon scale-to-zero)
+    pool_recycle=300,   # Recycle connections every 5 min (avoids stale connections)
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
