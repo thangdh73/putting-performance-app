@@ -1,0 +1,9 @@
+{
+  "name": "Putting Performance",
+  "short_name": "Putting",
+  "description": "Mobile-friendly putting drill practice app",
+  "display": "standalone",
+  "theme_color": "#0f172a",
+  "background_color": "#f1f5f9",
+  "start_url": "/"
+}

@@ -26,7 +26,7 @@ export default function BroadieResultButtons({
           type="button"
           onClick={() => onSelect(id)}
           disabled={disabled}
-          className="rounded-xl border-2 border-slate-200 bg-white px-6 py-4 text-left text-base font-medium text-slate-800 shadow-sm transition-colors hover:border-emerald-400 hover:bg-emerald-50 active:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="min-h-[56px] rounded-xl border-2 border-slate-200 bg-white px-6 py-4 text-left text-base font-medium text-slate-800 shadow-sm transition-colors hover:border-emerald-400 hover:bg-emerald-50 active:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span className="block">{label}</span>
           <span className="mt-1 block text-sm text-slate-500">

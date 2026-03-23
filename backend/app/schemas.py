@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Any, Optional
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserBase(BaseModel):
@@ -12,7 +12,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    pass
+    name: str = Field(..., min_length=1)
 
 
 class UserRead(UserBase):
@@ -57,6 +57,7 @@ class SessionRead(SessionBase):
     id: int
     total_score: Optional[float] = None
     attempts_required: Optional[int] = None
+    official_attempts_count: Optional[int] = None
     made_count: Optional[int] = None
     total_attempts: Optional[int] = None
     percentage_score: Optional[float] = None

@@ -1,13 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getDrill } from "../api/drills";
-import { getUsers } from "../api/users";
-import { createSession } from "../api/sessions";
+import { createSession, getSessions } from "../api/sessions";
+import { getErrorMessage } from "../lib/apiErrors";
+import { useActivePlayer } from "../context/ActivePlayerContext";
+import { isPartialSession } from "../lib/sessionDisplay";
 import type { Drill } from "../types";
 
 export default function DrillDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { activePlayer, users } = useActivePlayer();
   const [drill, setDrill] = useState<Drill | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +18,7 @@ export default function DrillDetail() {
     "average"
   );
   const [starting, setStarting] = useState(false);
+  const [partialSessionId, setPartialSessionId] = useState<number | null>(null);
   const submittingRef = useRef(false);
 
   const fetchData = useCallback(() => {
@@ -33,13 +37,35 @@ export default function DrillDetail() {
     setLoading(true);
     getDrill(numId)
       .then(setDrill)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .catch((e) => setError(getErrorMessage(e)))
       .finally(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Check for partial session (same drill + active player, + scoring mode for Broadie) for Resume option
+  const isBroadieForEffect = drill?.category === "broadie";
+  useEffect(() => {
+    if (!drill || !activePlayer) {
+      setPartialSessionId(null);
+      return;
+    }
+    getSessions({ drill_id: drill.id, user_id: activePlayer.id })
+      .then((sessions) => {
+        const partial = sessions.find((s) => {
+          if (!isPartialSession(s)) return false;
+          if (isBroadieForEffect) {
+            const sessionMode = (s.scoring_mode || "average").toLowerCase();
+            return sessionMode === scoringMode;
+          }
+          return true;
+        });
+        setPartialSessionId(partial?.id ?? null);
+      })
+      .catch(() => setPartialSessionId(null));
+  }, [drill, activePlayer, scoringMode, isBroadieForEffect]);
 
   const isBroadie = drill?.category === "broadie";
   const isFootage = drill?.category === "footage";
@@ -50,11 +76,11 @@ export default function DrillDetail() {
   const handleStartSession = async () => {
     if (!drill || !canStartSession) return;
     if (submittingRef.current) return;
+    const userId = activePlayer?.id ?? users[0]?.id ?? 1;
+    if (!userId) return;
     submittingRef.current = true;
     setStarting(true);
     try {
-      const users = await getUsers();
-      const userId = users[0]?.id ?? 1;
       const session = await createSession({
         user_id: userId,
         drill_id: drill.id,
@@ -63,7 +89,7 @@ export default function DrillDetail() {
       });
       navigate(`/sessions/${session.id}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to start session");
+      setError(getErrorMessage(e, "Failed to start session"));
     } finally {
       submittingRef.current = false;
       setStarting(false);
@@ -87,19 +113,22 @@ export default function DrillDetail() {
     return (
       <section>
         <h2 className="text-xl font-semibold text-slate-800">Drill Detail</h2>
-        <p className="mt-4 text-amber-700">{error ?? "Drill not found"}</p>
+        <p className="mt-4 text-amber-700" role="alert">{error ?? "Drill not found"}</p>
         <div className="mt-4 flex flex-wrap gap-3">
           {validId && (
             <button
               type="button"
               onClick={fetchData}
-              className="text-sm text-emerald-600 hover:underline"
+              className="min-h-[44px] rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
             >
               Retry
             </button>
           )}
-          <Link to="/drills" className="text-sm text-emerald-600 hover:underline">
-            ← Back to Drill Library
+          <Link to="/drills" className="inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50">
+            ← Drill Library
+          </Link>
+          <Link to="/history" className="inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50">
+            History
           </Link>
         </div>
       </section>
@@ -132,26 +161,26 @@ export default function DrillDetail() {
             <>
               <h3 className="text-sm font-medium text-slate-700">Scoring mode</h3>
               <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:gap-4">
-                <label className="flex cursor-pointer items-center gap-2">
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
                   <input
                     type="radio"
                     name="mode"
                     checked={scoringMode === "average"}
                     onChange={() => setScoringMode("average")}
-                    className="h-4 w-4"
+                    className="h-5 w-5"
                   />
                   <span className="text-slate-700">Average</span>
                   <span className="text-sm text-slate-500">
                     (10 putts, sum points)
                   </span>
                 </label>
-                <label className="flex cursor-pointer items-center gap-2">
+                <label className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
                   <input
                     type="radio"
                     name="mode"
                     checked={scoringMode === "completion"}
                     onChange={() => setScoringMode("completion")}
-                    className="h-4 w-4"
+                    className="h-5 w-5"
                   />
                   <span className="text-slate-700">Completion</span>
                   <span className="text-sm text-slate-500">
@@ -165,14 +194,38 @@ export default function DrillDetail() {
               </div>
             </>
           )}
-          <button
-            type="button"
-            onClick={handleStartSession}
-            disabled={starting}
-            className="mt-6 w-full rounded-lg bg-emerald-600 px-4 py-4 text-lg font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
-          >
-            {starting ? "Starting…" : "Start Session"}
-          </button>
+          {activePlayer && (
+            <p className="mt-4 text-sm text-slate-600">
+              Recording as: <strong>{activePlayer.name}</strong>
+            </p>
+          )}
+          {partialSessionId != null ? (
+            <div className="mt-6 space-y-3">
+              <Link
+                to={`/sessions/${partialSessionId}`}
+                className="flex min-h-[52px] w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-4 text-lg font-semibold text-white hover:bg-emerald-700"
+              >
+                Resume session
+              </Link>
+              <button
+                type="button"
+                onClick={handleStartSession}
+                disabled={starting || !(activePlayer ?? users[0])}
+                className="min-h-[44px] w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {starting ? "Starting…" : "Start new session"}
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleStartSession}
+              disabled={starting || !(activePlayer ?? users[0])}
+              className="mt-6 min-h-[52px] w-full rounded-lg bg-emerald-600 px-4 py-4 text-lg font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+            >
+              {starting ? "Starting…" : "Start Session"}
+            </button>
+          )}
         </div>
       ) : (
         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-slate-600">
@@ -182,7 +235,7 @@ export default function DrillDetail() {
 
       <Link
         to="/drills"
-        className="mt-6 inline-block text-sm text-emerald-600 hover:underline"
+        className="mt-6 inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
       >
         ← Back to Drill Library
       </Link>

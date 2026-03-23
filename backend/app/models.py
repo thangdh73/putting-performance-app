@@ -48,6 +48,7 @@ class Session(Base):
     scoring_mode: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     total_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     attempts_required: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    official_attempts_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     made_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     total_attempts: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     percentage_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)

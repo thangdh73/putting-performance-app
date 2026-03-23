@@ -10,13 +10,13 @@ export default function Dashboard() {
       <div className="mt-6 flex flex-col gap-3">
         <Link
           to="/drills"
-          className="rounded-lg bg-emerald-600 px-4 py-3 text-center font-medium text-white hover:bg-emerald-700"
+          className="flex min-h-[56px] items-center justify-center rounded-lg bg-emerald-600 px-6 py-4 text-center text-base font-medium text-white hover:bg-emerald-700"
         >
           Choose a drill
         </Link>
         <Link
           to="/history"
-          className="rounded-lg border border-slate-300 bg-white px-4 py-3 text-center font-medium text-slate-700 hover:bg-slate-50"
+          className="flex min-h-[56px] items-center justify-center rounded-lg border border-slate-300 bg-white px-6 py-4 text-center text-base font-medium text-slate-700 hover:bg-slate-50"
         >
           View history
         </Link>

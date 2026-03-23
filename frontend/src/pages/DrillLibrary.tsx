@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getDrills } from "../api/drills";
+import { getErrorMessage } from "../lib/apiErrors";
 import type { Drill } from "../types";
 
 export default function DrillLibrary() {
@@ -11,7 +12,7 @@ export default function DrillLibrary() {
   useEffect(() => {
     getDrills()
       .then(setDrills)
-      .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+      .catch((e) => setError(getErrorMessage(e)))
       .finally(() => setLoading(false));
   }, []);
 
@@ -28,7 +29,37 @@ export default function DrillLibrary() {
     return (
       <section>
         <h2 className="text-xl font-semibold text-slate-800">Drill Library</h2>
-        <p className="mt-4 text-amber-700">{error}</p>
+        <p className="mt-4 text-amber-700" role="alert">{error}</p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              getDrills()
+                .then(setDrills)
+                .catch((e) => setError(getErrorMessage(e)))
+                .finally(() => setLoading(false));
+            }}
+            className="min-h-[44px] rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Retry
+          </button>
+          <Link to="/" className="inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50">
+            Dashboard
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (drills.length === 0) {
+    return (
+      <section>
+        <h2 className="text-xl font-semibold text-slate-800">Drill Library</h2>
+        <p className="mt-4 text-slate-600">
+          No drills available. The app may still be loading data.
+        </p>
         <button
           type="button"
           onClick={() => {
@@ -36,10 +67,10 @@ export default function DrillLibrary() {
             setLoading(true);
             getDrills()
               .then(setDrills)
-              .catch((e) => setError(e instanceof Error ? e.message : "Failed to load"))
+              .catch((e) => setError(getErrorMessage(e)))
               .finally(() => setLoading(false));
           }}
-          className="mt-4 text-sm text-emerald-600 hover:underline"
+          className="mt-4 min-h-[44px] rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
         >
           Retry
         </button>
@@ -58,7 +89,7 @@ export default function DrillLibrary() {
           <li key={drill.id}>
             <Link
               to={`/drills/${drill.id}`}
-              className="block rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-emerald-300 hover:bg-slate-50"
+              className="block min-h-[64px] rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-colors hover:border-emerald-300 hover:bg-slate-50 active:bg-slate-100"
             >
               <span className="font-medium text-slate-800">{drill.name}</span>
               {drill.description && (

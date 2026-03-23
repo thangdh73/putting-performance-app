@@ -32,6 +32,7 @@ def init_db() -> None:
     from app import models  # noqa: F401 - register tables with Base.metadata
 
     Base.metadata.create_all(bind=engine)
+    _migrate_add_official_attempts_count()
     from app.seed import run_seed
 
     db = SessionLocal()
@@ -39,6 +40,18 @@ def init_db() -> None:
         run_seed(db)
     finally:
         db.close()
+
+
+def _migrate_add_official_attempts_count() -> None:
+    """Add official_attempts_count column to sessions if missing (for existing DBs)."""
+    from sqlalchemy import text
+
+    with engine.connect() as conn:
+        r = conn.execute(text("PRAGMA table_info(sessions)"))
+        cols = [row[1] for row in r.fetchall()]
+        if "official_attempts_count" not in cols:
+            conn.execute(text("ALTER TABLE sessions ADD COLUMN official_attempts_count INTEGER"))
+            conn.commit()
 
 
 def get_db():

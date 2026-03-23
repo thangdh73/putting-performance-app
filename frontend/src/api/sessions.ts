@@ -1,13 +1,15 @@
-import { get, post } from "./client";
+import { get, post, del } from "./client";
 import type { Session, Attempt } from "../types";
 
 export async function getSessions(params?: {
   user_id?: number;
   drill_id?: number;
+  official_only?: boolean;
 }): Promise<Session[]> {
   const search = new URLSearchParams();
   if (params?.user_id != null) search.set("user_id", String(params.user_id));
   if (params?.drill_id != null) search.set("drill_id", String(params.drill_id));
+  if (params?.official_only === true) search.set("official_only", "true");
   const qs = search.toString();
   return get<Session[]>(`/api/sessions${qs ? `?${qs}` : ""}`);
 }
@@ -48,4 +50,8 @@ export async function addAttempt(
   body: AttemptCreateBody
 ): Promise<Attempt> {
   return post<Attempt>(`/api/sessions/${sessionId}/attempts`, body);
+}
+
+export async function deleteSession(sessionId: number): Promise<void> {
+  return del(`/api/sessions/${sessionId}`);
 }

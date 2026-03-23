@@ -77,7 +77,7 @@ export default function SGHoleEntry({ onRecord, disabled }: SGHoleEntryProps) {
           }}
           placeholder="e.g. 15"
           disabled={disabled}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-3 text-lg focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+          className="mt-1 min-h-[48px] w-full rounded-lg border border-slate-300 px-4 py-3 text-lg focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
         />
       </div>
       <div>
@@ -100,7 +100,7 @@ export default function SGHoleEntry({ onRecord, disabled }: SGHoleEntryProps) {
           }}
           placeholder="e.g. 2"
           disabled={disabled}
-          className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-3 text-lg focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
+          className="mt-1 min-h-[48px] w-full rounded-lg border border-slate-300 px-4 py-3 text-lg focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-60"
         />
       </div>
       {validationError && (
@@ -111,7 +111,7 @@ export default function SGHoleEntry({ onRecord, disabled }: SGHoleEntryProps) {
       <button
         type="submit"
         disabled={disabled || !isValid}
-        className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-lg font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
+        className="min-h-[52px] w-full rounded-lg bg-emerald-600 px-4 py-4 text-lg font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
       >
         Record hole
       </button>

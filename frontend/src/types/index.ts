@@ -33,6 +33,7 @@ export interface Session {
   notes: string | null;
   total_score: number | null;
   attempts_required: number | null;
+  official_attempts_count: number | null;
   made_count: number | null;
   total_attempts: number | null;
   percentage_score: number | null;

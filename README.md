@@ -102,6 +102,17 @@ The backend allows `http://localhost:5173` and `http://127.0.0.1:5173` for brows
 
 **Prerequisites:** GitHub account, [Render](https://render.com) account, [Vercel](https://vercel.com) account.
 
+### Before you deploy — checklist
+
+| Item | Required |
+|------|----------|
+| GitHub repo with this project pushed | Yes |
+| Render: set Root Directory to `backend` | Yes |
+| Render: add `CORS_ORIGINS` = your Vercel URL | Yes (add after Vercel deploy) |
+| Vercel: set Root Directory to `frontend` | Yes |
+| Vercel: add `VITE_API_BASE` = your Render URL | Yes |
+| Redeploy Vercel after changing `VITE_API_BASE` | Yes (build-time variable) |
+
 ### Step 1: Push to GitHub
 
 1. Create a new repo on GitHub (e.g. `putting-performance-app`).
@@ -152,12 +163,33 @@ If your Vercel URL is different from `https://putting-performance-app.vercel.app
 2. Edit `CORS_ORIGINS` to your exact Vercel URL (e.g. `https://putting-performance-app-xxxx.vercel.app`).
 3. **Manual Deploy** → **Deploy latest commit**.
 
+### Step 5: Add to iPhone Home Screen
+
+1. Open your app URL in **Safari** on iPhone.
+2. Tap the **Share** button (square with arrow).
+3. Scroll and tap **Add to Home Screen**.
+4. Tap **Add**.
+
+The app runs in standalone mode with a minimal browser UI. Data is stored on the server (Render); the home screen shortcut opens the same web app.
+
 ---
 
-**Notes:**
-- Render free tier sleeps after ~15 min; first load after sleep can take 30–60 seconds.
-- SQLite data resets on deploy or service restart.
-- Add to iPhone: Safari → your app URL → Share → Add to Home Screen.
+### Deployment notes
+
+| Topic | Notes |
+|-------|-------|
+| **Render free tier** | Service sleeps after ~15 min idle. First request after sleep can take 30–60 seconds to wake up. The app shows: *"Connection failed. The server may be waking up — try again in a moment."* |
+| **Data** | SQLite data resets on Render deploy or service restart. |
+| **Environment** | `VITE_API_BASE` is baked in at build time. Redeploy the Vercel frontend if you change the Render URL. |
+
+### Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| CORS error in browser | Ensure Render `CORS_ORIGINS` matches your Vercel URL exactly (including `https://`, no trailing slash). |
+| "Connection failed" or blank screen | Backend may be waking. Wait 30–60 seconds and tap Retry. |
+| API 404 or wrong base URL | Set `VITE_API_BASE` in Vercel to your Render URL. Redeploy Vercel (required). |
+| Add to Home Screen not working | Use **Safari** on iPhone. Share → Add to Home Screen. Chrome on iOS uses Safari under the hood; use Safari for best results. |
 
 ---
 

@@ -19,6 +19,7 @@ def list_sessions(
     db: Session = Depends(get_db),
     user_id: Optional[int] = Query(None),
     drill_id: Optional[int] = Query(None),
+    official_only: bool = Query(False, description="If true, only return sessions with official_attempts_count set (for analytics)"),
 ):
     """List sessions with optional filters."""
     q = db.query(SessionModel).order_by(SessionModel.session_date.desc())
@@ -26,6 +27,8 @@ def list_sessions(
         q = q.filter(SessionModel.user_id == user_id)
     if drill_id is not None:
         q = q.filter(SessionModel.drill_id == drill_id)
+    if official_only:
+        q = q.filter(SessionModel.official_attempts_count.isnot(None))
     return q.limit(100).all()
 
 
@@ -52,6 +55,19 @@ def get_session(session_id: int, db: Session = Depends(get_db)):
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return session
+
+
+@router.delete("/{session_id}", status_code=204)
+def delete_session(session_id: int, db: Session = Depends(get_db)):
+    """Delete a session and all its attempts. Cannot be undone."""
+    session = db.query(SessionModel).filter(SessionModel.id == session_id).first()
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    # Delete attempts first (FK constraint)
+    db.query(AttemptModel).filter(AttemptModel.session_id == session_id).delete()
+    db.delete(session)
+    db.commit()
+    return None
 
 
 @router.get("/{session_id}/attempts", response_model=list[AttemptRead])
@@ -106,16 +122,42 @@ def add_attempt(
     db.refresh(attempt)
     db.refresh(session)
 
+    # Force reload of attempts so the new one is included
+    db.expire(session, ["attempts"])
+    attempts_list = list(session.attempts)
+    official_count = session.official_attempts_count
+    attempts_for_scoring = (
+        attempts_list[:official_count] if official_count is not None else attempts_list
+    )
+
     totals = calculate_session_totals(
         drill_category=session.drill.category,
         drill_code=session.drill.code,
         benchmark_json=session.drill.benchmark_json,
-        attempts=session.attempts,
+        attempts=attempts_for_scoring,
         scoring_mode=session.scoring_mode,
     )
     for k, v in totals.items():
         if v is not None:
             setattr(session, k, v)
+
+    if session.official_attempts_count is None:
+        mode = (session.scoring_mode or "average").lower()
+        bench = session.drill.benchmark_json or {}
+        if session.drill.category == "broadie":
+            if mode == "completion" and totals.get("attempts_required") is not None:
+                session.official_attempts_count = totals["attempts_required"]
+            elif mode == "average" and len(attempts_list) >= 10:
+                session.official_attempts_count = 10
+        elif session.drill.category == "footage" and len(attempts_list) >= 20:
+            session.official_attempts_count = 20
+        elif session.drill.category == "percentage" and len(attempts_list) >= 20:
+            session.official_attempts_count = 20
+        elif session.drill.category == "strokes_gained_placeholder":
+            target = int(bench.get("holes", 9))
+            if len(attempts_list) >= target:
+                session.official_attempts_count = target
+
     db.commit()
     db.refresh(session)
 
