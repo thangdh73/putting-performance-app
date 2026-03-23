@@ -19,6 +19,10 @@ export default function SGHoleEntry({ onRecord, disabled }: SGHoleEntryProps) {
     e.preventDefault();
     if (disabled) return;
     setValidationError(null);
+    if (distance.trim() === "" || putts.trim() === "") {
+      setValidationError("Please enter a distance and putt count before recording.");
+      return;
+    }
     const d = parseFloat(distance);
     const p = parseInt(putts, 10);
     if (isNaN(d) || d < MIN_DISTANCE_FT || d > MAX_DISTANCE_FT) {

@@ -84,6 +84,16 @@ export default function SessionSummary() {
   };
   const extraCount = Math.max(0, attempts.length - officialCount);
 
+  const getBroadieOutcomeLabel = (a: (typeof attempts)[0]): string => {
+    if (a.is_holed_first_putt === true) return "Holed first putt";
+    if (a.putts_to_hole_out === 2 && a.is_first_putt_short === false)
+      return "2 putts, first not short";
+    if (a.putts_to_hole_out === 2 && a.is_first_putt_short === true)
+      return "2 putts, first short";
+    if ((a.putts_to_hole_out ?? 0) >= 3) return "3 putts or worse";
+    return "Putts";
+  };
+
   const formatAttempt = (a: (typeof attempts)[0], i: number) => {
     if (isSG) {
       return (
@@ -116,12 +126,13 @@ export default function SessionSummary() {
         </li>
       );
     }
+    const outcomeLabel = getBroadieOutcomeLabel(a);
     return (
       <li
         key={a.id}
         className="flex min-h-[48px] items-center justify-between px-4 py-3"
       >
-        <span className="text-slate-700">Putts {i + 1}</span>
+        <span className="text-slate-700">{outcomeLabel}</span>
         <span className="font-medium text-slate-800">
           {a.points_awarded != null && a.points_awarded >= 0 ? "+" : ""}
           {a.points_awarded ?? "—"}

@@ -43,7 +43,7 @@ function sessionsToChartPoints(
         dateLabel: d.toLocaleDateString(undefined, {
           month: "short",
           day: "numeric",
-          year: "2-digit",
+          year: "numeric",
         }),
         value: v,
       };

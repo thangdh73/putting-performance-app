@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { addAttempt } from "../api/sessions";
 import BroadieResultButtons, {
   type BroadieResult,
@@ -52,6 +52,7 @@ function broadieResultToBody(
 
 export default function SessionEntry() {
   const { sessionId } = useParams<{ sessionId: string }>();
+  const navigate = useNavigate();
   const { session, drill, attempts, loading, error, setError, validId, fetchData } =
     useSessionData(sessionId);
   const [saving, setSaving] = useState(false);
@@ -348,7 +349,7 @@ export default function SessionEntry() {
         </p>
         {sgResuming && (
           <p className="mt-2 text-sm font-medium text-emerald-700">
-            Resuming — {attempts.length} of {targetHoles} holes recorded
+            In progress — {attempts.length} of {targetHoles} holes recorded
           </p>
         )}
 
@@ -427,7 +428,7 @@ export default function SessionEntry() {
       <p className="mt-1 text-sm text-slate-500 capitalize">{mode} mode</p>
       {broadieResuming && (
         <p className="mt-2 text-sm font-medium text-emerald-700">
-          Resuming — {attempts.length}
+          In progress — {attempts.length}
           {isCompletion && target != null ? ` putts · ${runningTotal} pts (target ${target})` : " of 10 attempts"}
         </p>
       )}
@@ -475,12 +476,17 @@ export default function SessionEntry() {
           </div>
 
           {!isOfficialComplete && (
-            <Link
-              to="/drills"
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigate("/drills");
+              }}
               className="mt-8 inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
             >
               ← Cancel (back to Drill Library)
-            </Link>
+            </button>
           )}
           {broadieInExtraPractice && (
             <div className="mt-6">

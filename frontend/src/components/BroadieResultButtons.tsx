@@ -24,7 +24,16 @@ export default function BroadieResultButtons({
         <button
           key={id}
           type="button"
-          onClick={() => onSelect(id)}
+          onPointerDown={(e) => {
+            if (e.button === 0 || e.pointerType === "touch") {
+              e.preventDefault();
+              if (!disabled) onSelect(id);
+            }
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            if (!disabled) onSelect(id);
+          }}
           disabled={disabled}
           className="min-h-[56px] rounded-xl border-2 border-slate-200 bg-white px-6 py-4 text-left text-base font-medium text-slate-800 shadow-sm transition-colors hover:border-emerald-400 hover:bg-emerald-50 active:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
         >
