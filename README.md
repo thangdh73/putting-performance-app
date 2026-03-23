@@ -155,7 +155,21 @@ The backend allows `http://localhost:5173` and `http://127.0.0.1:5173` for brows
 4. Click **Deploy**. Wait for it to finish.
 5. Copy your app URL (e.g. `https://putting-performance-app.vercel.app`).
 
-### Step 4: Fix CORS (if needed)
+### Step 4: Persistent data (players and sessions)
+
+On Render’s free tier, the default SQLite database is ephemeral and resets when the service restarts or redeploys. To keep players and sessions:
+
+1. Create a free PostgreSQL database:
+   - **Option A – [Neon](https://neon.tech)** (recommended): Sign up → Create project → copy the connection string.
+   - **Option B – [Render Postgres](https://render.com/docs/databases)**: New + → PostgreSQL → Create. Copy the **Internal Database URL** from the service’s Info tab.
+
+2. In **Render Dashboard** → your backend service → **Environment**:
+   - Add variable: **Key** `DATABASE_URL`, **Value** your Postgres connection string.
+   - Save and **Redeploy** the service.
+
+3. The backend will use Postgres instead of SQLite. Data (players, sessions) will persist across deploys and restarts.
+
+### Step 5: Fix CORS (if needed)
 
 If your Vercel URL is different from `https://putting-performance-app.vercel.app`:
 
@@ -163,7 +177,7 @@ If your Vercel URL is different from `https://putting-performance-app.vercel.app
 2. Edit `CORS_ORIGINS` to your exact Vercel URL (e.g. `https://putting-performance-app-xxxx.vercel.app`).
 3. **Manual Deploy** → **Deploy latest commit**.
 
-### Step 5: Add to iPhone Home Screen
+### Step 6: Add to iPhone Home Screen
 
 1. Open your app URL in **Safari** on iPhone.
 2. Tap the **Share** button (square with arrow).
@@ -179,7 +193,7 @@ The app runs in standalone mode with a minimal browser UI. Data is stored on the
 | Topic | Notes |
 |-------|-------|
 | **Render free tier** | Service sleeps after ~15 min idle. First request after sleep can take 30–60 seconds to wake up. The app shows: *"Connection failed. The server may be waking up — try again in a moment."* |
-| **Data** | SQLite data resets on Render deploy or service restart. |
+| **Data persistence** | Without `DATABASE_URL`: SQLite resets on deploy/restart. Set `DATABASE_URL` to a Neon or Render Postgres connection string for persistent players and sessions. |
 | **Environment** | `VITE_API_BASE` is baked in at build time. Redeploy the Vercel frontend if you change the Render URL. |
 
 ### Troubleshooting
@@ -188,8 +202,10 @@ The app runs in standalone mode with a minimal browser UI. Data is stored on the
 |---------|-----|
 | CORS error in browser | Ensure Render `CORS_ORIGINS` matches your Vercel URL exactly (including `https://`, no trailing slash). |
 | "Connection failed" or blank screen | Backend may be waking. Wait 30–60 seconds and tap Retry. |
+| "Method Not Allowed" when adding a player | `VITE_API_BASE` may be missing in Vercel. Set it to your Render URL and **redeploy** the frontend. |
 | API 404 or wrong base URL | Set `VITE_API_BASE` in Vercel to your Render URL. Redeploy Vercel (required). |
 | Add to Home Screen not working | Use **Safari** on iPhone. Share → Add to Home Screen. Chrome on iOS uses Safari under the hood; use Safari for best results. |
+| Players/sessions disappear after a while | Add a free Postgres DB (Neon or Render Postgres) and set `DATABASE_URL` on the Render backend. Redeploy. |
 
 ---
 

@@ -63,6 +63,11 @@ export async function getApiErrorMessage(
   }
 
   // Fallback by status
+  if (status === 405) {
+    return options?.isDeployed
+      ? "Method Not Allowed. Ensure VITE_API_BASE points to your backend (Render URL) and redeploy Vercel."
+      : "Method Not Allowed. Check that the backend is running and the API URL is correct.";
+  }
   if (status === 404) {
     if (path.includes("/sessions/")) return "Session not found";
     if (path.includes("/drills/")) return "Drill not found";
