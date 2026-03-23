@@ -3,6 +3,7 @@ Database setup. Uses PostgreSQL when DATABASE_URL is set (persistent), else SQLi
 """
 
 import os
+import time
 from pathlib import Path
 
 from sqlalchemy import create_engine
@@ -13,6 +14,9 @@ _DATABASE_URL = os.environ.get("DATABASE_URL")
 if _DATABASE_URL:
     # Neon/Render Postgres may use postgres://; SQLAlchemy expects postgresql://
     _url = _DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # Allow 30s for Neon to wake from sleep (scale-to-zero)
+    _sep = "&" if "?" in _url else "?"
+    _url = f"{_url}{_sep}connect_timeout=30"
     SQLALCHEMY_DATABASE_URL = _url
     _connect_args = {}
 else:
@@ -38,18 +42,28 @@ def init_db() -> None:
     """
     Create all tables and run seed data.
     Idempotent: safe to call on every startup.
+    Retries on Postgres to allow Neon (scale-to-zero) time to wake.
     """
     from app import models  # noqa: F401 - register tables with Base.metadata
 
-    Base.metadata.create_all(bind=engine)
-    _migrate_add_official_attempts_count()
-    from app.seed import run_seed
+    max_attempts = 5 if _DATABASE_URL else 1
+    for attempt in range(max_attempts):
+        try:
+            Base.metadata.create_all(bind=engine)
+            _migrate_add_official_attempts_count()
+            from app.seed import run_seed
 
-    db = SessionLocal()
-    try:
-        run_seed(db)
-    finally:
-        db.close()
+            db = SessionLocal()
+            try:
+                run_seed(db)
+            finally:
+                db.close()
+            return
+        except Exception as e:
+            if attempt < max_attempts - 1 and _DATABASE_URL:
+                time.sleep(2 * (attempt + 1))  # 2s, 4s, 6s, 8s
+            else:
+                raise
 
 
 def _migrate_add_official_attempts_count() -> None:
