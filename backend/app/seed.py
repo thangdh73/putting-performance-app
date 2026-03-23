@@ -131,11 +131,10 @@ DRILLS = [
 ]
 
 
-def seed_default_user(db: Session) -> User:
-    """Create default user if none exists. Returns the default user."""
-    user = db.query(User).filter(User.name == DEFAULT_USER_NAME).first()
-    if user:
-        return user
+def seed_default_user(db: Session) -> User | None:
+    """Create default user only if no users exist at all. Returns the default user or None."""
+    if db.query(User).count() > 0:
+        return None
     user = User(name=DEFAULT_USER_NAME)
     db.add(user)
     db.commit()
