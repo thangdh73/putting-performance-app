@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { addAttempt } from "../api/sessions";
+import { addAttempt, deleteSession } from "../api/sessions";
 import BroadieResultButtons, {
   type BroadieResult,
 } from "../components/BroadieResultButtons";
@@ -56,8 +56,23 @@ export default function SessionEntry() {
   const { session, drill, attempts, loading, error, setError, validId, fetchData } =
     useSessionData(sessionId);
   const [saving, setSaving] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [showExtraPracticeEntry, setShowExtraPracticeEntry] = useState(false);
   const submittingRef = useRef(false);
+
+  const handleCancel = async () => {
+    if (!session || cancelling) return;
+    setCancelling(true);
+    setError(null);
+    try {
+      await deleteSession(session.id);
+      navigate("/drills");
+    } catch (e) {
+      setError(getErrorMessage(e, "Failed to discard session"));
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   const isBroadie = drill?.category === "broadie";
   const isFootage = drill?.category === "footage";
@@ -262,10 +277,11 @@ export default function SessionEntry() {
           {!isOfficialComplete && (
             <button
               type="button"
-              onClick={() => navigate("/drills")}
-              className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
             >
-              ← Cancel
+              {cancelling ? "Discarding…" : "← Cancel"}
             </button>
           )}
         </div>
@@ -359,10 +375,11 @@ export default function SessionEntry() {
           {!isOfficialComplete && (
             <button
               type="button"
-              onClick={() => navigate("/drills")}
-              className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              onClick={handleCancel}
+              disabled={cancelling}
+              className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
             >
-              ← Cancel
+              {cancelling ? "Discarding…" : "← Cancel"}
             </button>
           )}
         </div>
@@ -443,10 +460,11 @@ export default function SessionEntry() {
         {!isOfficialComplete && (
           <button
             type="button"
-            onClick={() => navigate("/drills")}
-            className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            onClick={handleCancel}
+            disabled={cancelling}
+            className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
           >
-            ← Cancel
+            {cancelling ? "Discarding…" : "← Cancel"}
           </button>
         )}
       </div>
