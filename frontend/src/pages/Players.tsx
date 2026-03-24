@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { createUser, deleteUser } from "../api/users";
 import { getErrorMessage } from "../lib/apiErrors";
 import { useActivePlayer } from "../context/ActivePlayerContext";
+import RemovePlayerConfirmModal from "../components/RemovePlayerConfirmModal";
 
 export default function Players() {
   const { users, refreshUsers, setActivePlayerId } = useActivePlayer();
   const [name, setName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [removeConfirmTarget, setRemoveConfirmTarget] = useState<{ id: number; name: string } | null>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [removeSuccess, setRemoveSuccess] = useState<string | null>(null);
@@ -39,19 +41,21 @@ export default function Players() {
     return () => clearTimeout(t);
   }, [removeSuccess]);
 
-  const handleRemove = async (user: { id: number; name: string }) => {
+  const handleRemoveClick = (user: { id: number; name: string }) => {
     if (users.length <= 1) return;
-    const confirmed = window.confirm(
-      `Are you sure you want to permanently remove ${user.name}?\n\nThis will also permanently delete all of their sessions and attempts.\n\nThis cannot be undone.`
-    );
-    if (!confirmed) return;
+    setRemoveConfirmTarget(user);
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!removeConfirmTarget) return;
     setRemoveError(null);
     setRemoveSuccess(null);
-    setDeletingId(user.id);
+    setDeletingId(removeConfirmTarget.id);
     try {
-      await deleteUser(user.id);
+      await deleteUser(removeConfirmTarget.id);
       await refreshUsers();
-      setRemoveSuccess(`${user.name} has been permanently removed.`);
+      setRemoveSuccess(`${removeConfirmTarget.name} has been permanently removed.`);
+      setRemoveConfirmTarget(null);
     } catch (e) {
       setRemoveError(getErrorMessage(e, "Failed to remove player"));
     } finally {
@@ -61,6 +65,14 @@ export default function Players() {
 
   return (
     <section>
+      {removeConfirmTarget && (
+        <RemovePlayerConfirmModal
+          playerName={removeConfirmTarget.name}
+          onConfirm={handleRemoveConfirm}
+          onCancel={() => setRemoveConfirmTarget(null)}
+          isRemoving={deletingId === removeConfirmTarget.id}
+        />
+      )}
       <h2 className="text-xl font-semibold text-slate-800">Players</h2>
       <p className="mt-2 text-slate-600">
         Add players to track their sessions separately.
@@ -122,7 +134,7 @@ export default function Players() {
                 <span>{u.name}</span>
                 <button
                   type="button"
-                  onClick={() => handleRemove(u)}
+                  onClick={() => handleRemoveClick(u)}
                   disabled={users.length <= 1 || deletingId === u.id}
                   className="min-h-[44px] min-w-[44px] rounded-lg px-4 py-2 text-base font-medium text-amber-600 hover:bg-amber-50 hover:text-amber-700 disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label={`Remove ${u.name}`}

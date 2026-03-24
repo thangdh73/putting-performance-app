@@ -155,11 +155,19 @@ export default function SessionEntry() {
     if (!session || !isBroadie || saving) return;
     if (isComplete && !showExtraPracticeEntry) return;
     if (submittingRef.current) return;
+    const willComplete =
+      isBroadie &&
+      !isCompletion &&
+      attempts.length + 1 >= 10;
     submittingRef.current = true;
     setSaving(true);
     try {
       const body = broadieResultToBody(result, attempts.length + 1);
       await addAttempt(session.id, body);
+      if (willComplete) {
+        navigate(`/sessions/${session.id}/summary`);
+        return;
+      }
       fetchData();
     } catch (e) {
       setError(getErrorMessage(e, "Failed to save attempt"));
@@ -249,7 +257,18 @@ export default function SessionEntry() {
     const inExtraPractice = isOfficialComplete && showExtraPracticeEntry;
     return (
       <section>
-        <h2 className="text-xl font-semibold text-slate-800">{drill.name}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xl font-semibold text-slate-800">{drill.name}</h2>
+          {!isOfficialComplete && (
+            <button
+              type="button"
+              onClick={() => navigate("/drills")}
+              className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              ← Cancel
+            </button>
+          )}
+        </div>
 
         {inExtraPractice && (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
@@ -312,14 +331,6 @@ export default function SessionEntry() {
           </div>
         ) : null}
 
-        {!isOfficialComplete && (
-          <Link
-            to="/drills"
-            className="mt-8 inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
-          >
-            ← Cancel (back to Drill Library)
-          </Link>
-        )}
         {inExtraPractice && (
           <div className="mt-6">
             <Link
@@ -343,7 +354,18 @@ export default function SessionEntry() {
 
     return (
       <section>
-        <h2 className="text-xl font-semibold text-slate-800">{drill.name}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xl font-semibold text-slate-800">{drill.name}</h2>
+          {!isOfficialComplete && (
+            <button
+              type="button"
+              onClick={() => navigate("/drills")}
+              className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              ← Cancel
+            </button>
+          )}
+        </div>
         <p className="mt-1 text-sm text-slate-500">
           MVP: store distance and putts. Full strokes gained later.
         </p>
@@ -398,15 +420,6 @@ export default function SessionEntry() {
           </div>
         ) : null}
 
-        {!isOfficialComplete && (
-          <button
-            type="button"
-            onClick={() => navigate("/drills")}
-            className="mt-8 inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
-          >
-            ← Cancel (back to Drill Library)
-          </button>
-        )}
         {sgInExtraPractice && (
           <div className="mt-6">
             <Link
@@ -425,7 +438,18 @@ export default function SessionEntry() {
   const broadieResuming = !isOfficialComplete && attempts.length > 0;
   return (
     <section>
-      <h2 className="text-xl font-semibold text-slate-800">{drill.name}</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-xl font-semibold text-slate-800">{drill.name}</h2>
+        {!isOfficialComplete && (
+          <button
+            type="button"
+            onClick={() => navigate("/drills")}
+            className="shrink-0 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+          >
+            ← Cancel
+          </button>
+        )}
+      </div>
       <p className="mt-1 text-sm text-slate-500 capitalize">{mode} mode</p>
       {broadieResuming && (
         <p className="mt-2 text-sm font-medium text-emerald-700">
@@ -476,19 +500,6 @@ export default function SessionEntry() {
             </div>
           </div>
 
-          {!isOfficialComplete && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                navigate("/drills");
-              }}
-              className="mt-8 inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
-            >
-              ← Cancel (back to Drill Library)
-            </button>
-          )}
           {broadieInExtraPractice && (
             <div className="mt-6">
               <Link

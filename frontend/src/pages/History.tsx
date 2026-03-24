@@ -29,7 +29,13 @@ export default function History() {
     error,
     refetch,
   } = useSessionsWithDrills(playerFilter);
-  const filtered = filterSessionsByCategory(sessions, drillMap, filter);
+  const filtered = filterSessionsByCategory(sessions, drillMap, filter).filter(
+    (s) => {
+      const attempts = s.total_attempts ?? 0;
+      const isComplete = s.official_attempts_count != null;
+      return isComplete || attempts > 0;
+    }
+  );
 
   const handleConfirmDelete = async () => {
     if (deletingId == null) return;

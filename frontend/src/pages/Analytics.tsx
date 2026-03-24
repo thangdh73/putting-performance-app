@@ -217,8 +217,7 @@ export default function Analytics() {
               </div>
             </div>
             <p className="mt-2 text-xs text-slate-500">
-              {sessions.length} session{sessions.length !== 1 ? "s" : ""} in
-              view
+              {sessions.length} completed session{sessions.length !== 1 ? "s" : ""} in view
             </p>
           </div>
 

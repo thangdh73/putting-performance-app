@@ -44,20 +44,6 @@ export default function SGHoleEntry({ onRecord, disabled }: SGHoleEntryProps) {
     setPutts("");
   };
 
-  const d = parseFloat(distance);
-  const p = parseInt(putts, 10);
-  const isValid =
-    distance !== "" &&
-    putts !== "" &&
-    !isNaN(d) &&
-    d >= MIN_DISTANCE_FT &&
-    d <= MAX_DISTANCE_FT &&
-    !isNaN(p) &&
-    Number.isInteger(p) &&
-    p >= MIN_PUTTS &&
-    p <= MAX_PUTTS &&
-    Number(putts) === Math.floor(Number(putts));
-
   return (
     <form onSubmit={handleSubmit} className="mt-4 space-y-4">
       <div>
@@ -114,7 +100,7 @@ export default function SGHoleEntry({ onRecord, disabled }: SGHoleEntryProps) {
       )}
       <button
         type="submit"
-        disabled={disabled || !isValid}
+        disabled={disabled}
         className="min-h-[52px] w-full rounded-lg bg-emerald-600 px-4 py-4 text-lg font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
       >
         Record hole
