@@ -399,12 +399,13 @@ export default function SessionEntry() {
         ) : null}
 
         {!isOfficialComplete && (
-          <Link
-            to="/drills"
+          <button
+            type="button"
+            onClick={() => navigate("/drills")}
             className="mt-8 inline-flex min-h-[44px] items-center rounded-lg border border-slate-300 bg-white px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50"
           >
             ← Cancel (back to Drill Library)
-          </Link>
+          </button>
         )}
         {sgInExtraPractice && (
           <div className="mt-6">
